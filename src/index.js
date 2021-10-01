@@ -11,18 +11,104 @@ const users = [];
 
 function checksExistsUserAccount(request, response, next) {
   // Complete aqui
+    const { username } = request.headers;
+
+
+    const  user = users.find( (user) => user.username === username );
+
+    if(!user){
+      return response.status(404).json({ error: "Error User!" });
+
+    }
+
+    request.user = user;
+    
+return next();
+
 }
+
+
 
 function checksCreateTodosUserAvailability(request, response, next) {
   // Complete aqui
+    const { user } = request;
+    const validateAmountTodo = user.todos;
+    
+   
+    
+    if(user.pro == false && validateAmountTodo.length > 9){
+      
+      return response.status(403).json({ error: "You exceeded the number of free Todos!"})
+    }
+
+
+    if(user.pro){
+     
+      return next();
+    } else if (user.pro == false && validateAmountTodo.length < 10) {
+     
+      
+      return next();
+      }
+
+     
+      
 }
 
 function checksTodoExists(request, response, next) {
   // Complete aqui
+
+  //Você deve validar que o usuário exista, 
+  //validar que o id seja um uui  
+  // também validar que esse id pertence a um todo do usuário informado.
+    
+  const {username} = request.headers;
+  const idTodo = request.params;
+  const validateUuid = validate(idTodo.id);
+  const user = users.find((user) => user.username === username);
+ 
+  if(!validateUuid){
+    return response.status(400).json({ error: 'UUID Invalid'})
+  }
+
+  if(!user){
+      return response.status(404).json({ error: 'User not Find'})
+  } 
+    
+  const validateTodo = user.todos;
+  const idTodoUser = validateTodo.find((todo) => todo.id === idTodo.id);
+
+  if(!idTodoUser){
+    return response.status(404).json({ error: 'Id Todo Not Found'})
+} 
+   
+  if(user && validateUuid && idTodoUser){
+    
+    request.user = user;
+    request.todo = idTodoUser;
+    return next();
+
+  }
+      
+ 
+
 }
+
+
 
 function findUserById(request, response, next) {
   // Complete aqui
+  const {id} = request.params;
+
+  const  user = users.find( (user) => user.id === id );
+
+  if(!user){
+    return response.status(404).json({ error: 'User Not Found'})
+  }else {
+    request.user = user;
+    return next();
+  }
+
 }
 
 app.post('/users', (request, response) => {
@@ -128,3 +214,5 @@ module.exports = {
   checksTodoExists,
   findUserById
 };
+
+//app.listen(3333);
